@@ -9,3 +9,6 @@ Językiem programowania wykorzystywanym do implementacji projektu jest python 3.
 * Scipy 
 * Matplotlib 
 * Shapely
+## Członkowie projektu
+* Hubert Kubiak
+* Kacper Łuczak
