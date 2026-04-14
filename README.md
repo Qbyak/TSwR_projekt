@@ -7,7 +7,7 @@ Głównym celem jest zbadanie wpływu parametru Lookahead Distance $L_d$ na stab
 ### Fundamenty i Środowisko
 * Implementacja geometrii toru – stworzenie klasy Track wykorzystującej Shapely do reprezentacji linii centralnej i granic toru.
 * Kinematyczny model pojazdu – uruchomienie uproszczonej fizyki, aby przetestować podstawowy algorytm Pure Pursuit.
-* Wizualizacja – stworzenie silnika animacji w Matplotlib lub PyBullet wyświetlającego bolid i punkt Lookahead w czasie rzeczywistym.
+* Wizualizacja – stworzenie silnika animacji w Matplotlib wyświetlającego bolid i punkt Lookahead w czasie rzeczywistym.
 ### Dynamika
 * Implementacja Bicycle Model – zaprogramowanie nieliniowych równań stanu $\dot{\overline{x}}$ uwzględniających siły opon.
 * Implementacja Modelu Opon Pacejka – uwzględnienie kątów uślizgu $\alpha_F, \alpha_R$ oraz nasycenia opon.
