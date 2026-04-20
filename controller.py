@@ -2,7 +2,7 @@ import numpy as np
 
 
 class PurePursuitController:
-    def __init__(self, wheelbase=3.0, max_steering=0.5):
+    def __init__(self, wheelbase=3.0, max_steering=0.9):
         """
         Inicjalizacja kontrolera.
         wheelbase: Rozstaw osi pojazdu (wartość L z modelu pojazdu) [m]
