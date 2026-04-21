@@ -24,11 +24,11 @@ def get_curvature(track, s, epsilon=0.5):
 def run_animated_simulation():
 
     track = create_track('Catalunya.csv',0.1)
-    car = Vehicle(s0=0.0, n0=2.0, mu0=0.0, vx0=17.0)
+    car = Vehicle(s0=0.0, n0=0.0, mu0=0.0, vx0=8.0)
     controller = PurePursuitController(wheelbase=3.0, max_steering=0.9)
 
     dt = 0.025
-    Ld = 1.0
+    Ld = 1.5
 
     history_x, history_y = [], []
 
@@ -54,13 +54,36 @@ def run_animated_simulation():
 
     ax.legend(loc='upper right')
 
-
     def update(frame):
         state = car.get_state()
         curvature = get_curvature(track, state['s'])
-        delta, target_x, target_y = controller.compute_steering(state, track, Ld)
+        vx = state["vx"]
+        kappa_now = abs(curvature)
+        kappa_1 = abs(get_curvature(track, state['s'] + 2.0))
+        kappa_2 = abs(get_curvature(track, state['s'] + 4.0))
+        kappa = max(kappa_now, kappa_1, kappa_2)
+        # 1. Ciągłe Ld: większe na prostych, mniejsze w zakrętach,
+        # ale też trochę rośnie z prędkością
+        Ld_current = 1.7 + 0.06 * vx - 3.0 * kappa
+        # lokalna poprawka tylko na bardzo ciasne zakręty
+        if kappa > 0.09:
+            Ld_current -= 0.3
+        Ld_current = np.clip(Ld_current, 1.1, 2.6)
 
-        car.update_kinematic(target_delta=delta, target_T=0.0, curvature=curvature, dt=dt)
+        delta, target_x, target_y = controller.compute_steering(state, track, Ld_current)
+        delta = np.clip(delta, -0.45, 0.45)
+
+        # 2. Docelowa prędkość z krzywizny
+        # im większa krzywizna, tym mniejsza prędkość
+        v_ref = np.sqrt(1.5 / (kappa + 1e-3))
+        v_ref = np.clip(v_ref, 2.0, 10.0)
+
+        # 3. Prosty regulator prędkości
+        target_T = 0.15 * (v_ref - vx)
+        target_T = np.clip(target_T, -0.45, 0.40)
+
+        car.update_dynamic(target_delta=delta, target_T=target_T, curvature=curvature, dt=dt)
+
         car_x, car_y = track.get_global_coords(car.s, car.n)
         history_x.append(car_x)
         history_y.append(car_y)
