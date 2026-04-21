@@ -33,7 +33,7 @@ class Vehicle:
         # Napęd / opory
         # Fx = Cm*T - Cr0 - Cr2*vx^2
         # =========================
-        self.Cm = 2500.0        # [N]
+        self.Cm = 5000.0        # [N]
         self.Cr0 = 180.0        # [N]
         self.Cr2 = 0.6          # [N / (m/s)^2]
 
@@ -190,8 +190,8 @@ class Vehicle:
         self.vx = max(self.vx, 0.1)
 
         # opcjonalne miękkie ograniczenia stabilności
-        self.vy = np.clip(self.vy, -5.0, 5.0)
-        self.r = np.clip(self.r, -5.0, 5.0)
+        #self.vy = np.clip(self.vy, -5.0, 5.0)
+        #self.r = np.clip(self.r, -5.0, 5.0)
 
     def get_state(self):
         return {
