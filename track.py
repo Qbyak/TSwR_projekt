@@ -61,7 +61,6 @@ class Track:
         p2 = np.array(self.center_line.interpolate(s_next).coords[0])
         angle = np.arctan2(p2[1] - p1[1], p2[0] - p1[0])
 
-        # Przesunięcie o n wzdłuż wektora normalnego (kąt + 90 stopni)
         x = point_on_line.x + n * np.cos(angle + np.pi / 2)
         y = point_on_line.y + n * np.sin(angle + np.pi / 2)
 
@@ -70,15 +69,23 @@ class Track:
 
 
 
-def create_track(csv_path, scale):
+def create_track(csv_path, scale, csv_path_otl=None):
     df = pd.read_csv(csv_path)
 
-    # Pobranie danych
     x = df['x_m'].values * scale
     y = df['y_m'].values * scale
-    w_left = df['w_tr_left_m'].values * (scale*3)
-    w_right = df['w_tr_right_m'].values * (scale*3)
+    w_left = df['w_tr_left_m'].values * scale
+    w_right = df['w_tr_right_m'].values * scale
 
+    total_widths = w_left + w_right
+    avg_width = np.mean(total_widths)
+    min_width = np.min(total_widths)
+    max_width = np.max(total_widths)
+
+    print(f"--- Statystyki toru ({csv_path}) ---")
+    print(f"Średnia szerokość: {avg_width:.2f} m")
+    print(f"Najwęższe miejsce: {min_width:.2f} m")
+    print(f"Najszersze miejsce:  {max_width:.2f} m")
     left_boundary = []
     right_boundary = []
 
@@ -92,15 +99,12 @@ def create_track(csv_path, scale):
         dx = x[idx_next] - x[idx_prev]
         dy = y[idx_next] - y[idx_prev]
         length = np.hypot(dx, dy)
-
         if length == 0:
             continue
 
-        # Znormalizowany wektor prostopadły (normalny) skierowany w lewo
         nx = -dy / length
         ny = dx / length
 
-        # Obliczanie współrzędnych lewej i prawej granicy
         x_l = x[i] + nx * w_left[i]
         y_l = y[i] + ny * w_left[i]
         left_boundary.append((x_l, y_l))
@@ -109,12 +113,21 @@ def create_track(csv_path, scale):
         y_r = y[i] - ny * w_right[i]
         right_boundary.append((x_r, y_r))
 
+    points = list(zip(x, y))
 
-
-    center_line = LineString(list(zip(x, y)))
-    track_polygon = Polygon(left_boundary + right_boundary[::-1])
-
+    if points[0] != points[-1]:
+        points.append(points[0])
+    if csv_path_otl is not None:
+        df_otl = pd.read_csv(csv_path_otl)
+        x_otl = df_otl['x_m'].values * scale
+        y_otl = df_otl['y_m'].values * scale
+        center_line = LineString(list(zip(x_otl, y_otl)))
+        track_polygon = Polygon(left_boundary + right_boundary[::-1])
+    else:
+        center_line = LineString(list(zip(x, y)))
+        track_polygon = Polygon(left_boundary + right_boundary[::-1])
     return Track(center_line, track_polygon)
+
 
 def plot_track(track):
     """
@@ -147,27 +160,26 @@ def plot_track(track):
 
 def create_test_track(width=3.0):
     """Tworzy przykładowy tor w kształcie stadionu (owal)."""
-    # Proste odcinki i półokręgi
+
     points = []
-    # Dolna prosta
+
     for x in np.linspace(0, 50, 10): points.append((x, 0))
-    # Prawy łuk
+
     for a in np.linspace(-np.pi / 2, np.pi / 2, 10): points.append((50 + 15 * np.cos(a), 15 + 15 * np.sin(a)))
-    # Górna prosta
+
     for x in np.linspace(50, 0, 10): points.append((x, 30))
-    # Lewy łuk
+
     for a in np.linspace(np.pi / 2, 3 / 2 * np.pi, 10): points.append((0 + 15 * np.cos(a), 15 + 15 * np.sin(a)))
-    # Zamknięcie pętli
+
     points.append(points[0])
     center_line = LineString(points)
 
     track_polygon = center_line.buffer(width / 2.0, cap_style=1, join_style=1)
 
-    # Zwracamy kompletny obiekt Track
     return Track(center_line, track_polygon)
 
 if __name__ == "__main__":
-    track = create_track('Catalunya.csv', 0.2)
+    track = create_track('BrandsHatch.csv', 0.35, 'BrandsHatch.csv')
     print(f"Tor utworzony. Długość: {track.length:.2f}m")
 
     plot_track(track)

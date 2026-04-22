@@ -6,8 +6,8 @@ class Vehicle:
         # =========================
         # Geometria pojazdu
         # =========================
-        self.l_F = 1.5          # [m]
-        self.l_R = 1.5          # [m]
+        self.l_F = 0.75         # [m]
+        self.l_R = 0.75         # [m]
         self.L = self.l_F + self.l_R
 
         # =========================
@@ -23,11 +23,11 @@ class Vehicle:
         # =========================
         self.BF = 5.0
         self.CF = 1.3
-        self.DF = 1.0
+        self.DF = 1.4
 
         self.BR = 5.0
         self.CR = 1.3
-        self.DR = 1.0
+        self.DR = 1.4
 
         # =========================
         # Napęd / opory
@@ -188,10 +188,6 @@ class Vehicle:
         # -------------------------
         self.mu = self._wrap_angle(self.mu)
         self.vx = max(self.vx, 0.1)
-
-        # opcjonalne miękkie ograniczenia stabilności
-        #self.vy = np.clip(self.vy, -5.0, 5.0)
-        #self.r = np.clip(self.r, -5.0, 5.0)
 
     def get_state(self):
         return {

@@ -14,7 +14,7 @@ Głównym celem jest zbadanie wpływu parametru Lookahead Distance $L_d$ na stab
 ### Heurystyki i Adaptacyjne $L_d$
 * Logika krzywiznowa – stworzenie funkcji mapującej lokalną krzywiznę $\kappa(s)$ na skrócenie dystansu patrzenia. ✅
 * Skalowanie prędkościowe – implementacja liniowej i nieliniowej zależności $L_d$ od $v_x$. ✅
-* Analiza porównawcza – zebranie danych o błędzie śledzenia dla różnych heurystyk. 
+* Analiza porównawcza – zebranie danych o błędzie śledzenia dla różnych heurystyk. ✅
 ### Reinforcement Learning (RL)
 * Projektowanie funkcji nagrody – implementacja nagrody promującej czas okrążenia przy zachowaniu stabilności.
 * Trening agenta – wykorzystanie algorytmu PPO do nauki optymalnego doboru $L_d$ w dynamicznych warunkach.

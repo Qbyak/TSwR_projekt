@@ -10,6 +10,7 @@ class PurePursuitController:
         """
         self.L = wheelbase
         self.max_steering = max_steering
+        self.last_delta = 0.0
 
     def compute_steering(self, vehicle_state, track, Ld):
         """
@@ -24,9 +25,7 @@ class PurePursuitController:
         target_point = track.center_line.interpolate(s_target)
         target_x, target_y = target_point.x, target_point.y
 
-
         car_x, car_y = track.get_global_coords(s, n)
-
         epsilon = 0.1
         s_wrapped = s % track.length
 
@@ -39,7 +38,6 @@ class PurePursuitController:
 
         yaw = track_angle + mu
 
-        # Kąt wektora od samochodu prosto do punktu docelowego
         angle_to_target = np.arctan2(target_y - car_y, target_x - car_x)
 
         alpha = angle_to_target - yaw
