@@ -16,8 +16,8 @@ class Track:
     def get_curvilinear_coords(self, x, y):
         """
         Konwertuje współrzędne globalne (x, y) na krzywoliniowe (s, n).
-        s: progres wzdłuż ścieżki (arc-length)[cite: 85].
-        n: odchylenie ortogonalne od ścieżki[cite: 85].
+        s: progres wzdłuż ścieżki (arc-length).
+        n: odchylenie ortogonalne od ścieżki.
         """
 
         p = Point(x, y)
@@ -65,9 +65,6 @@ class Track:
         y = point_on_line.y + n * np.sin(angle + np.pi / 2)
 
         return x, y
-
-
-
 
 def create_track(csv_path, scale, csv_path_otl=None):
     df = pd.read_csv(csv_path)

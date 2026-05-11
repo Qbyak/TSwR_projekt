@@ -35,9 +35,7 @@ def plot_track_curvature(csv_path, scale, csv_otl=None):
         x_values.append(point.x)
         y_values.append(point.y)
 
-    # ==========================================
     # WIZUALIZACJA
-    # ==========================================
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 6))
     if csv_otl is None:
         fig.suptitle('Profil Krzywizny Toru: brak OTL', fontsize=16)

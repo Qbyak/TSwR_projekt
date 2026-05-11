@@ -5,17 +5,14 @@ class PurePursuitController:
     def __init__(self, wheelbase=3.0, max_steering=0.9):
         """
         Inicjalizacja kontrolera.
-        wheelbase: Rozstaw osi pojazdu (wartość L z modelu pojazdu) [m]
-        max_steering: Maksymalny fizyczny kąt skrętu kół [rad] (0.5 rad to ok. 28 stopni)
         """
         self.L = wheelbase
         self.max_steering = max_steering
         self.last_delta = 0.0
 
     def compute_steering(self, vehicle_state, track, Ld):
-        """
-        Oblicza optymalny kąt skrętu na podstawie wektora stanu i dystansu Ld.
-        """
+
+        #Oblicza optymalny kąt skrętu na podstawie wektora stanu i dystansu Ld.
         s = vehicle_state['s']
         n = vehicle_state['n']
         mu = vehicle_state['mu']

@@ -25,7 +25,7 @@ def get_curvature(track, s, epsilon=1.5):
 
 def run_animated_simulation():
 
-    track = create_track('Catalunya.csv', 0.3, 'Catalunya_otl.csv')
+    track = create_track('Catalunya.csv', 0.4, 'Catalunya_otl.csv')
     car = Vehicle(s0=0.0, n0=0.0, mu0=0.0, vx0=17.0)
     controller = PurePursuitController(wheelbase=1.5, max_steering=0.9)
 
@@ -55,7 +55,7 @@ def run_animated_simulation():
 
     car_patch = patches.Rectangle((0, 0), width=1.5, height=1.0, color='red', label='Bolid')
     ax_track.add_patch(car_patch)
-    lookahead_scatter, = ax_track.plot([], [], 'ro', markersize=4, label='Cel Ld')
+    lookahead_scatter, = ax_track.plot([], [], 'ro', markersize=3, label='Cel Ld')
     history_line, = ax_track.plot([], [], 'r-', alpha=0.4)
     ax_track.legend(loc='upper right')
 
@@ -82,47 +82,42 @@ def run_animated_simulation():
     line_vref, = ax_vel.plot([], [], 'k--', alpha=0.7, label='Docelowa $v_{ref}$')
     ax_vel.legend(loc='upper right')
 
-    # ==========================================
     # PĘTLA SYMULACYJNA
-    # ==========================================
+    STEPS_PER_FRAME = 3
     def update(frame):
-        state = car.get_state()
-        vx = state["vx"]
+        for _ in range(STEPS_PER_FRAME):
+            state = car.get_state()
+            vx = state["vx"]
 
-        # RADAR
-        curvature_now = get_curvature(track, state['s'], epsilon=1.5)
-        kappa_now = abs(curvature_now)
+            # RADAR
+            curvature_now = get_curvature(track, state['s'], epsilon=1.5)
+            kappa_now = abs(curvature_now)
 
-        L_brake = 1.5 * vx  # ok 1.s do przodu
-        curvature_ahead = get_curvature(track, state['s'] + L_brake, epsilon=1.5)
-        kappa_ahead = abs(curvature_ahead)
+            L_brake = 1.7 * vx
+            curvature_ahead = get_curvature(track, state['s'] + L_brake, epsilon=1.5)
+            kappa_ahead = abs(curvature_ahead)
 
-        # Sterowanie Ld
-        Ld_current = 1.5 + 0.8 * vx - 1.2 * kappa_now
-        Ld_current = max(Ld_current, 1.5)
-        delta_raw, target_x, target_y = controller.compute_steering(state, track, Ld_current)
-        alpha = 0.3
-        delta = (1.0 - alpha) * controller.last_delta + alpha * delta_raw
-        controller.last_delta = delta
+            # Sterowanie Ld
+            Ld_current = 1.3 + 0.8 * vx - 1.5 * kappa_now
+            Ld_current = max(Ld_current, 1.5)
+            delta_raw, target_x, target_y = controller.compute_steering(state, track, Ld_current)
+            alpha = 0.3
+            delta = (1.0 - alpha) * controller.last_delta + alpha * delta_raw
+            controller.last_delta = delta
 
-        kappa_max = max(kappa_now, kappa_ahead)
-        v_ref = np.sqrt(10.0 / (kappa_max + 1e-3))
-        v_ref = min(v_ref, 17.0)
+            kappa_max = max(kappa_now, kappa_ahead)
+            v_ref = np.sqrt(10.0 / (kappa_max + 1e-3))
+            v_ref = min(v_ref, 17.0)
 
-        target_T = 1.5 * (v_ref - vx)
-        target_T = np.clip(target_T, -1.0, 1.0)
+            target_T = 1.5 * (v_ref - vx)
+            target_T = np.clip(target_T, -1.0, 1.0)
 
-        car.update_dynamic(target_delta=delta, target_T=target_T, curvature=curvature_now, dt=dt)
+            car.update_dynamic(target_delta=delta, target_T=target_T, curvature=curvature_now, dt=dt)
 
-
-        current_time = frame * dt
+        current_time = frame * dt * STEPS_PER_FRAME
         history_t.append(current_time)
 
-        vy, r = car.vy, car.r
-        l_F, l_R = 1.5, 1.5
-        vx_safe = max(abs(car.vx), 0.5)
-        alpha_F = np.arctan2(vy + l_F * r, vx_safe) - car.delta
-        alpha_R = np.arctan2(vy - l_R * r, vx_safe)
+        alpha_F, alpha_R = car.get_slip_angles()
         history_aF.append(alpha_F)
         history_aR.append(alpha_R)
 
@@ -130,7 +125,7 @@ def run_animated_simulation():
         history_vx.append(car.vx)
         history_vref.append(v_ref)
 
-        # ================== RYSOWANIE ==================
+        # Rysowanie
         car_x, car_y = track.get_global_coords(car.s, car.n)
         history_x.append(car_x)
         history_y.append(car_y)
@@ -158,14 +153,13 @@ def run_animated_simulation():
             ax_slip.set_xlim(current_time - 5, current_time + 5)
             ax_vel.set_xlim(current_time - 5, current_time + 5)
 
-        # Dynamiczna oś Y dla uślizgów
         max_alpha = max(max(np.abs(history_aF)), max(np.abs(history_aR)))
         if max_alpha > ax_slip.get_ylim()[1] * 0.9:
             ax_slip.set_ylim(-max_alpha * 1.5, max_alpha * 1.5)
 
         return car_patch, lookahead_scatter, history_line, line_aF, line_aR, line_vx, line_vref
 
-    ani = animation.FuncAnimation(fig, update, frames=5000, interval=25, blit=False)
+    ani = animation.FuncAnimation(fig, update, frames=10000, interval=25, blit=True)
     plt.tight_layout()
     plt.show()
 
