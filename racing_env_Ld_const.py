@@ -26,11 +26,10 @@ class RacingEnv(gym.Env):
         self.track = create_track(csv_path, scale, otl_path)
         self.dt = 0.025
 
-        # Akcja [0]: Modyfikator odległości patrzenia (Ld)
-        # Akcja [1]: Kontrola pedałów (target_T) [-1, 1]
-        self.action_space = spaces.Box(low=-1.0, high=1.0, shape=(2,), dtype=np.float32)
+        # Akcja [0]: Kontrola pedałów (target_T) [-1, 1]
+        self.action_space = spaces.Box(low=-1.0, high=1.0, shape=(1,), dtype=np.float32)
 
-        # [vx, vy, error_n, kappa_now, kappa_ahead, kappa2, last_T]
+        # [vx, vy, błąd_n, kappa_now, kappa_ahead, kappa2, last_T]
         high = np.array([17.0, 10.0, 5.0, 1.0, 1.5,1.0,0.8, 1.0], dtype=np.float32)
         self.observation_space = spaces.Box(low=-high, high=high, dtype=np.float32)
 
@@ -39,7 +38,7 @@ class RacingEnv(gym.Env):
         self.current_step = 0
         self.max_steps = 20000
         self.last_T = 0.0
-        self.prev_T_for_penalty = 0.0
+        self.prev_T_for_penalty = 0.0  # Pamięć poprzedniego kroku do wyliczania kary
 
     def reset(self, seed=None, options=None):
         """Resetuje środowisko na starcie nowego epizodu (okrążenia)."""
@@ -62,10 +61,8 @@ class RacingEnv(gym.Env):
         state = self.car.get_state()
         vx = state["vx"]
 
-        k = 1.2 + action[0] * 0.8
-        ai_Ld = np.clip(k * max(vx, 2.0), 2.0, 25.0)
-
-
+        k = 1.2
+        ai_Ld = np.clip(4, 2.0, 25.0)
         #ai_Ld = 12.0 + action[0] * 10.0
         curvature_now = get_curvature(self.track, state['s'], epsilon=2.0)
 
@@ -75,7 +72,7 @@ class RacingEnv(gym.Env):
         self.controller.last_delta = delta
 
         # Kontrola pedałów
-        target_T = action[1]
+        target_T = action[0]
 
         old_s = state['s']
         self.last_T = target_T
@@ -118,8 +115,11 @@ class RacingEnv(gym.Env):
 
         car_x, car_y = self.track.get_global_coords(current_state['s'], current_state['n'])
         ds = current_state['s'] - old_s
+
+
         if ds < -self.track.length / 2:
             ds += self.track.length
+
 
         survival_bonus = 0.5
         reward += survival_bonus
@@ -138,6 +138,7 @@ class RacingEnv(gym.Env):
         if not self.track.is_inside(car_x, car_y) and abs(current_state['n']) > 0.85:
             reward = -300.0
             terminated = True
+
             return reward, terminated, truncated
 
         if self.current_step >= self.max_steps:

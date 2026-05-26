@@ -1,6 +1,7 @@
 import numpy as np
 from shapely.geometry import LineString, Point, Polygon
 from shapely.ops import nearest_points
+from scipy.interpolate import make_interp_spline
 import matplotlib.pyplot as plt
 import pandas as pd
 class Track:
@@ -66,6 +67,9 @@ class Track:
 
         return x, y
 
+
+
+
 def create_track(csv_path, scale, csv_path_otl=None):
     df = pd.read_csv(csv_path)
 
@@ -73,6 +77,7 @@ def create_track(csv_path, scale, csv_path_otl=None):
     y = df['y_m'].values * scale
     w_left = df['w_tr_left_m'].values * scale
     w_right = df['w_tr_right_m'].values * scale
+
 
     total_widths = w_left + w_right
     avg_width = np.mean(total_widths)
@@ -118,6 +123,22 @@ def create_track(csv_path, scale, csv_path_otl=None):
         df_otl = pd.read_csv(csv_path_otl)
         x_otl = df_otl['x_m'].values * scale
         y_otl = df_otl['y_m'].values * scale
+
+        if x_otl[0] != x_otl[-1] or y_otl[0] != y_otl[-1]:
+            x_otl = np.append(x_otl, x_otl[0])
+            y_otl = np.append(y_otl, y_otl[0])
+
+        n_otl = len(x_otl)
+        t_otl = np.linspace(0, 1, n_otl)
+        t_otl_new = np.linspace(0, 1, n_otl * 4)  # Ten sam mnożnik 4!
+
+        spl_x_otl = make_interp_spline(t_otl, x_otl, k=3, bc_type='periodic')
+        spl_y_otl = make_interp_spline(t_otl, y_otl, k=3, bc_type='periodic')
+
+        # Odcinamy ostatni zdublowany punkt, tak jak w smooth_input_data
+        x_otl = spl_x_otl(t_otl_new)[:-1]
+        y_otl = spl_y_otl(t_otl_new)[:-1]
+
         center_line = LineString(list(zip(x_otl, y_otl)))
         track_polygon = Polygon(left_boundary + right_boundary[::-1])
     else:
@@ -176,7 +197,7 @@ def create_test_track(width=3.0):
     return Track(center_line, track_polygon)
 
 if __name__ == "__main__":
-    track = create_track('BrandsHatch.csv', 0.35, 'BrandsHatch.csv')
+    track = create_track('BrandsHatch.csv', 0.35, 'BrandsHatch_otl.csv')
     print(f"Tor utworzony. Długość: {track.length:.2f}m")
 
     plot_track(track)

@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import matplotlib.patches as patches
 
-from track import create_test_track, create_track
+from track import create_track
 from vehicle import Vehicle
 from controller import PurePursuitController
 
@@ -37,7 +37,7 @@ def run_animated_simulation():
     history_vx, history_vref = [], []
 
     fig = plt.figure(figsize=(15, 8))
-    fig.suptitle('Test Pure Pursuit - Dynamika, Uślizg i Prędkość (Milestone 2.1)')
+    fig.suptitle('Test Pure Pursuit -  (Milestone 2.1)')
 
     # Lewy duży panel (Tor)
     ax_track = plt.subplot(1, 2, 1)

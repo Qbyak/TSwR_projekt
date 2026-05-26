@@ -183,6 +183,7 @@ class Vehicle:
 
         self.mu = self._wrap_angle(self.mu)
         self.vx = max(self.vx, 0.1)
+        self.vx = min(self.vx, 17.0)
 
     def get_state(self):
         return {

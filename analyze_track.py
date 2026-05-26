@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from track import create_track, create_test_track
+from track import create_track
 
 
 def get_curvature(track, s, epsilon=5.0):
@@ -28,7 +28,8 @@ def plot_track_curvature(csv_path, scale, csv_otl=None):
     y_values = []
 
     for s in s_values:
-        kappa = abs(get_curvature(track, s, epsilon=1.5))
+        kappa = abs(get_curvature(track, s, epsilon=4.0))
+        kappa = np.clip(kappa, 0, 0.4)
         kappa_values.append(kappa)
 
         point = track.center_line.interpolate(s)
@@ -65,4 +66,4 @@ def plot_track_curvature(csv_path, scale, csv_otl=None):
 
 
 if __name__ == "__main__":
-    plot_track_curvature('Catalunya.csv', 0.3, csv_otl='Catalunya_otl.csv')
+    plot_track_curvature('Catalunya.csv', 0.4, csv_otl='Catalunya_otl.csv')
